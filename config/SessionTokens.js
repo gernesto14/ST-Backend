@@ -23,7 +23,10 @@ export const initSuperTokens = () => {
     },
     recipeList: [
       EmailPassword.init(),
-      Session.init(),
+      Session.init({
+        cookieSecure: true, // Only secure cookies in production
+        cookieSameSite: "strict", // Optionally set the SameSite policy (could be Strict, Lax, or None)
+      }),
       Dashboard.init({
         admins: [`${process.env.SUPERTOKENS_ADMIN_EMAILS}`],
       }),
