@@ -11,7 +11,7 @@ router.get("/", function (req, res, next) {
   console.log("Referer: ", headers.referer);
   console.log("Host: ", headers.host);
   // log cookies
-  console.log("Cookies: ", headers.cookie);
+  // console.log("Cookies: ", headers.cookie);
 
   res.send(req.headers);
 });
