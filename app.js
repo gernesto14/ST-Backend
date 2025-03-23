@@ -18,12 +18,16 @@ import { verifySession } from "supertokens-node/recipe/session/framework/express
 
 import UserMetadata from "supertokens-node/recipe/usermetadata";
 
+import { deleteAllUnverifiedUsers } from "./lib/misc.js";
+
 const app = express();
 
 // Initialize SuperTokens with the required configurations from the config file.
 initSuperTokens();
+
 app.use(cookieParser());
 
+// CORS
 const cors_origin = `${process.env.SUPERTOKENS_WEBSITE_DOMAIN}`;
 console.log("CORS Origin: ", cors_origin);
 app.use(
@@ -53,6 +57,8 @@ app.use(
     path.join(path.dirname(new URL(import.meta.url).pathname), "public")
   )
 );
+
+// deleteAllUnverifiedUsers();
 
 app.use("/", indexRouter);
 

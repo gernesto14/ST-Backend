@@ -7,7 +7,9 @@ import EmailVerification from "supertokens-node/recipe/emailverification";
 import SessionNode from "supertokens-node/recipe/session";
 import UserMetadata from "supertokens-node/recipe/usermetadata";
 import { updateMetadata, validateFormFields } from "../lib/signUp.js";
-import { deleteAllUnverifiedUsers } from "../lib/misc.js";
+// import { deleteAllUnverifiedUsers } from "../lib/misc.js";
+import ThirdParty from "supertokens-node/recipe/thirdparty";
+import { validateAccessCode } from "../lib/signUp.js";
 
 export const initSuperTokens = () => {
   supertokens.init({
@@ -28,10 +30,7 @@ export const initSuperTokens = () => {
         signUpFeature: {
           formFields: [
             {
-              id: "first_name",
-            },
-            {
-              id: "last_name",
+              id: "access_code",
             },
           ],
         },
@@ -40,32 +39,19 @@ export const initSuperTokens = () => {
             return {
               ...originalImplementation,
               signUpPOST: async function (input) {
-                if (originalImplementation.signUpPOST === undefined) {
-                  throw Error("Should never come here");
+                // Validate the access code
+                const accessCode = input.formFields[2].value;
+                if (accessCode !== "DEMO") {
+                  throw new Error("Invalid access code");
+                } else {
+                  console.log("Access code is valid");
                 }
 
-                // Extract the form fields from the input object
-                const validatedFormFields = validateFormFields(
-                  input.formFields
-                );
+                // Validate the form fields
 
-                // If the form fields are invalid, throw an error and stop the sign-up process
-                if (!validatedFormFields) {
-                  throw new Error("Invalid form fields");
-                }
-
-                // First we call the original implementation of signUpPOST.
+                // Set the flag BEFORE calling the original implementation
+                input.userContext.signingUp = true;
                 const response = await originalImplementation.signUpPOST(input);
-
-                const userId = response.user.id;
-
-                // Post sign up response, we check if it was successful
-                if (response.status === "OK") {
-                  // These are the input form fields values that the user used while signing up
-
-                  // Update user metadata
-                  await updateMetadata(userId, validatedFormFields);
-                }
                 return response;
               },
             };
@@ -75,13 +61,63 @@ export const initSuperTokens = () => {
       Session.init({
         cookieSecure: true, // Only secure cookies in production
         cookieSameSite: "strict", // Optionally set the SameSite policy (could be Strict, Lax, or None)
+        ////////////////////////////////////////////
+        //
+        override: {
+          functions: (originalImplementation) => {
+            return {
+              ...originalImplementation,
+
+              ////////////////////////////////////////////
+              // Override the createNewSession function to prevent session creation for signups
+              createNewSession: async function (input) {
+                if (input.userContext.signingUp) {
+                  // console.log("Preventing session creation for signup", input);
+
+                  // Return an empty session
+                  return {
+                    getAccessToken: () => "",
+                    getAccessTokenPayload: () => null,
+                    getExpiry: async () => -1,
+                    getHandle: () => "",
+                    getSessionDataFromDatabase: async () => null,
+                    getTimeCreated: async () => -1,
+                    getUserId: () => "",
+                    revokeSession: async () => {},
+                    updateSessionDataInDatabase: async () => {},
+                    mergeIntoAccessTokenPayload: async () => {},
+                    assertClaims: async () => {},
+                    fetchAndSetClaim: async () => {},
+                    getClaimValue: async () => undefined,
+                    setClaimValue: async () => {},
+                    removeClaim: async () => {},
+                    attachToRequestResponse: () => {},
+                    getAllSessionTokensDangerously: () => ({
+                      accessAndFrontTokenUpdated: false,
+                      accessToken: "",
+                      frontToken: "",
+                      antiCsrfToken: undefined,
+                      refreshToken: undefined,
+                    }),
+                    getTenantId: () => "public",
+                    getRecipeUserId: () =>
+                      SuperTokens.convertToRecipeUserId(""),
+                  };
+                }
+                return originalImplementation.createNewSession(input);
+              },
+            };
+          },
+        },
+        ////////////////////////////////////////////
       }),
+      //
       Dashboard.init({
         admins: [`${process.env.SUPERTOKENS_ADMIN_EMAILS}`],
       }),
       UserRoles.init(),
       EmailVerification.init({
-        mode: "OPTIONAL", // "REQUIRED", // or "OPTIONAL"
+        mode: "REQUIRED", // "REQUIRED", // or "OPTIONAL"
       }),
       UserMetadata.init(),
     ],
