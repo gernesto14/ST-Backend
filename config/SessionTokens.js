@@ -12,6 +12,9 @@ import ThirdParty from "supertokens-node/recipe/thirdparty";
 import { validateAccessCode } from "../lib/signUp.js";
 
 export const initSuperTokens = () => {
+  const apiDomain = process.env.SUPERTOKENS_API_DOMAIN;
+  const websiteDomain = process.env.SUPERTOKENS_WEBSITE_DOMAIN;
+
   supertokens.init({
     framework: "express",
     supertokens: {
@@ -20,8 +23,8 @@ export const initSuperTokens = () => {
     },
     appInfo: {
       appName: "My Frontend",
-      apiDomain: `${process.env.SUPERTOKENS_API_DOMAIN}`,
-      websiteDomain: `${process.env.SUPERTOKENS_WEBSITE_DOMAIN}`,
+      apiDomain,
+      websiteDomain,
       apiBasePath: "/auth",
       websiteBasePath: "/auth",
     },
