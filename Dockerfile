@@ -1,5 +1,5 @@
 # Use the official Node.js image.
-FROM node:20
+FROM node:20-alpine
 
 # Create and change to the app directory.
 WORKDIR /usr/src/app
@@ -9,7 +9,7 @@ COPY package*.json ./
 
 
 # Install dependencies.
-RUN npm install
+RUN npm install --force
 
 # Copy local code to the container image.
 COPY . .

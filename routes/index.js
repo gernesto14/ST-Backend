@@ -3,10 +3,9 @@ const router = express.Router();
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
-  const origin = req.get("origin") || req.get("referer") || req.get("referer");
-  // console.log(req.headers);
+  const userAgent = req.headers["user-agent"];
 
-  res.render("index", { title: `Express : ${origin}` });
+  res.render("index", { title: `Express : ${process.env.TEXT} ${userAgent}` });
 });
 
 export default router;
