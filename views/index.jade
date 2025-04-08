@@ -3,3 +3,5 @@ extends layout
 block content
   h1= title
   p Welcome to #{title}
+  h2 API: #{process.env.SUPERTOKENS_API_DOMAIN}
+  h2 Website: #{process.env.SUPERTOKENS_WEBSITE_DOMAIN}
